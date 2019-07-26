@@ -1,0 +1,10 @@
+{
+    "name": "funcphp/easyadmin-gallery",
+    "description": "Mosaic listing, drag and drop upload and more for EasyAdminBundle",
+    "autoload": {
+        "psr-4": {
+            "Func\\EasyAdminGalleryBundle\\": "src/Func/EasyAdminGalleryBundle"
+        }
+    }
+
+}

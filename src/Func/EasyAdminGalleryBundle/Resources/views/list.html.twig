@@ -1,0 +1,101 @@
+{% form_theme drag_drop_form with '@EasyAdmin/form/bootstrap_3_layout.html.twig' %}
+{% extends '@EasyAdmin/default/list.html.twig' %}
+{% block head_stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('bundles/funceasyadmingallery/vendor/bricklayer/bricklayer.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('bundles/funceasyadmingallery/style.css') }}">
+{% endblock %}
+{% block head_javascript %}
+    {{ parent() }}
+    <script src="{{ asset('bundles/funceasyadmingallery/vendor/bricklayer/bricklayer.min.js') }}"></script>
+{% endblock %}
+{% block body_javascript %}
+    {{ parent()|replace({
+        "('tr')": "('._tr_')",
+        "'table .toggle input[type=\"checkbox\"]'": "'.toggle input[type=\"checkbox\"]'",
+        "'table th.toggle:nth-child(' + columnIndex + ')'": "'table td.toggle:nth-child(' + columnIndex + ')'",
+    })|raw }}
+    <script src="{{ asset('bundles/funceasyadmingallery/script.js') }}"></script>
+{% endblock %}
+{% block main %}
+    {% set _list_item_actions = easyadmin_get_actions_for_list_item(_entity_config.name) %}
+
+    <div class="bricklayer">
+        {% for item in paginator.currentPageResults %}
+            {% set _item_id = '' ~ attribute(item, _entity_config.primary_key_field_name) %}
+            <div class="_tr_" data-id="{{ _item_id }}">
+                <div class="panel">
+                    {% for field, metadata in fields if metadata.thumbnail|default(false) %}
+                        <div class="gallery-thumbnail">
+                            {{ easyadmin_render_field_for_list_view(_entity_config.name, item, metadata) }}
+                            {% for field, metadata in fields if metadata.thumbnail_text|default(false) %}
+                                <div class="gallery-thumbnail-title" data-toggle="collapse" data-target="#gallery-{{ item.id }}-other-fields">
+                                    {{ easyadmin_render_field_for_list_view(_entity_config.name, item, metadata) }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                    {% if _list_item_actions|length > 0 %}
+                        <div class="gallery-actions">
+                            {% block item_actions %}
+                                {{ include('@EasyAdmin/default/includes/_actions.html.twig', {
+                                    actions: _list_item_actions,
+                                    request_parameters: _request_parameters,
+                                    translation_domain: _entity_config.translation_domain,
+                                    trans_parameters: _trans_parameters,
+                                    item_id: _item_id
+                                }, with_context = false) }}
+                            {% endblock item_actions %}
+                        </div>
+                    {% endif %}
+                    <div class="text-center">
+                        <div class="gallery-other-fields-button collapsed" data-toggle="collapse" data-target="#gallery-{{ item.id }}-other-fields"></div>
+                    </div>
+                    <div class="collapse gallery-other-fields" id="gallery-{{ item.id }}-other-fields">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <tbody>
+                                {% for field, metadata in fields if not metadata.thumbnail|default(false) and not metadata.primary_text|default(false) %}
+                                    {% set isSortingField = metadata.property == app.request.get('sortField')|split('.')|first %}
+                                    {% set _column_label = (metadata.label ?: field|humanize)|trans(_trans_parameters)  %}
+                                    <tr>
+                                        <td class="text-right"><b>{{ _column_label }}: </b></td>
+                                        <td data-property-name="{{ metadata.property }}" class="text-left {{ metadata.virtual ? 'virtual' }} {{ metadata.dataType|lower }} {{ metadata.css_class }}">
+                                            {{ easyadmin_render_field_for_list_view(_entity_config.name, item, metadata) }}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            {{ 'search.no_results'|trans(_trans_parameters, 'EasyAdminBundle') }}
+        {% endfor %}
+    </div>
+
+    {% block paginator %}
+        {{ include(_entity_config.templates.paginator) }}
+    {% endblock paginator %}
+
+    {% block delete_form %}
+        {% set referer = paginator.currentPage == paginator.nbPages and 1 != paginator.currentPage and 1 == paginator.currentPageResults.count
+        ? path('easyadmin', app.request.query|merge({ page: app.request.query.get('page') - 1 }))
+        : app.request.requestUri
+        %}
+
+        {{ include('@EasyAdmin/default/includes/_delete_form.html.twig', {
+            view: 'list',
+            referer: referer|url_encode,
+            delete_form: delete_form_template,
+            _translation_domain: _entity_config.translation_domain,
+            _trans_parameters: _trans_parameters,
+            _entity_config: _entity_config,
+        }, with_context = false) }}
+    {% endblock delete_form %}
+
+    {% include '@FuncEasyAdminGallery/includes/drag_drop_form.html.twig' with {_entity_config: _entity_config} %}
+{% endblock main %}
+

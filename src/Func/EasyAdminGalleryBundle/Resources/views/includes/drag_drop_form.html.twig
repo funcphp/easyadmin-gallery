@@ -1,0 +1,26 @@
+<div class="upload__container">
+    <form method="post" action="?action=dragDrop&entity={{ _entity_config.name }}" enctype="multipart/form-data" novalidate class="box">
+        <div class="form__input">
+            {{ form_label(drag_drop_form.__files__, "Dosyaları ışık hızılya yüklemek için elini mouse'dan çek.", {
+                'required': false,
+                'label_attr': {
+                    'class': 'selected-info'
+                }
+            }) }}
+            {{ form_widget(drag_drop_form.__files__, {
+                attr: {
+                    "class": "form__file",
+                    "data-multiple-caption": "{count} dosya seçildi",
+                }
+            })|raw }}
+            <hr>
+            <div class="form__fields">
+                {{ form_rest(drag_drop_form) }}
+            </div>
+            <button type="submit" class="btn btn-block btn-primary form__button">Yükle</button>
+        </div>
+        <div class="form__uploading">Yükleniyor&hellip;</div>
+        <div class="form__success">Yükleme başarılı! <a href="#" class="form__restart" role="button">Devam edecek misin?</a></div>
+        <div class="form__error">Hata! <span></span>. <a href="#" class="form__restart" role="button">Tekrar deneyebilirsin!</a></div>
+    </form>
+</div>
